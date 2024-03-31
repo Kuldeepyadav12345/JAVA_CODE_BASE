@@ -10,16 +10,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import com.stocksDemo.stocksDemo.chart.RealtimeChart;
 import com.stocksDemo.stocksDemo.service.stockDataFormating;
-import com.stocksDemo.stocksDemo.service.stockDataFormatingNifty;
-
-import ch.qos.logback.classic.Level;
 
 
 
-public class fetchStockData {
-	private static final Logger LOGGER = Logger.getLogger( fetchStockData.class.getName() );
+public class fetchStockDataNifty50 {
+	private static final Logger LOGGER = Logger.getLogger( fetchStockDataNifty50.class.getName() );
 
     public static void fetchStockDataApi(String[] args) {
     	System.out.println("asdasdasdasd");
@@ -27,17 +23,13 @@ public class fetchStockData {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
         // Replace "https://api.example.com/your-endpoint" with the actual REST API endpoint
-        String apiUrl1 = "https://groww.in/v1/api/stocks_fo_data/v1/tr_live_prices/exchange/NSE/segment/FNO/BANKNIFTY2430647900CE/latest";
-        String apiUrl2 = "https://groww.in/v1/api/stocks_fo_data/v1/tr_live_prices/exchange/NSE/segment/FNO/NIFTY2430722400PE/latest";
+        String apiUrl1 = "https://groww.in/v1/api/stocks_fo_data/v1/tr_live_prices/exchange/NSE/segment/FNO/BANKNIFTY2430647600PE/latest";
+        String apiUrl2 = "https://groww.in/v1/api/stocks_fo_data/v1/tr_live_prices/exchange/NSE/segment/FNO/NIFTY2430722400CE/latest";
         
 
         // Schedule the task to run every second
         //scheduler.scheduleAtFixedRate(() -> callApi(apiUrl1), 0, 1, TimeUnit.SECONDS);
         scheduler.scheduleAtFixedRate(() -> callApi(apiUrl2), 0, 1, TimeUnit.SECONDS);
-        
-        
-        
-        
         try {
         	System.setProperty("java.awt.headless", "false");
 //        	SwingUtilities.invokeLater(() -> {
@@ -69,7 +61,7 @@ public class fetchStockData {
             // Process the API response (you may want to do something with the response)
             String responseBody = response.body();
 //            System.out.println("API Response: " + responseBody);
-            stockDataFormating.formatJsonData(responseBody);
+            stockDataFormating.formatJsonData(responseBody, null);
            // stockDataFormatingNifty.formatJsonData(responseBody);
 
         } catch (Exception e) {

@@ -4,8 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,30 +13,27 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.stocksDemo.stocksDemo.model.bankNiftyTable;
-import com.stocksDemo.stocksDemo.repository.stockDataRepository;
-import com.stocksDemo.stocksDemo.route.fetchStockData;
+import com.stocksDemo.stocksDemo.model.NiftyFiftyTable;
+import com.stocksDemo.stocksDemo.repository.stockDataRepositoryNifty;
 
 import javazoom.jl.decoder.JavaLayerException;
-
-import java.util.logging.Logger;
 
 
 
 @Service
-public class stockDataFormating {
+public class stockDataFormatingNifty {
 	
-	private static stockDataRepository sDR = null;
-	private static final Logger LOGGER = Logger.getLogger( stockDataFormating.class.getName());
-	private static final Logger logger = Logger.getLogger(stockDataFormating.class.getName());
+	private static stockDataRepositoryNifty sDR = null;
+	private static final Logger LOGGER = Logger.getLogger( stockDataFormatingNifty.class.getName());
+	private static final Logger logger = Logger.getLogger(stockDataFormatingNifty.class.getName());
 	public static Double stopLossPrice=0.0;
 	public static int countSellNotification=0;
 	public static int testActialPrice=500;
 	public static int testStopLoss=490;
 
 	@Autowired
-	public stockDataFormating(stockDataRepository stockDataRepository) {
-		stockDataFormating.sDR = stockDataRepository;
+	public stockDataFormatingNifty(stockDataRepositoryNifty stockDataRepositoryNifty) {
+		stockDataFormatingNifty.sDR = stockDataRepositoryNifty;
 	}
 
 	public static void formatJsonData(String responseBody)throws JsonMappingException, JsonProcessingException, ParseException, JavaLayerException {
@@ -46,7 +42,7 @@ public class stockDataFormating {
 		JsonNode jsonNode = objectMapper.readTree(responseBody);
 		logger.finest("formatJsonData" +jsonNode);
 		
-		bankNiftyTable data = new bankNiftyTable();
+		NiftyFiftyTable data = new NiftyFiftyTable();
 		data.setType(jsonNode.get("type").toString());
 		data.setSymbol(jsonNode.get("symbol").toString());
 		data.setTsInMillis(jsonNode.get("tsInMillis").toString());
@@ -84,7 +80,7 @@ public class stockDataFormating {
 		sendSellSignal(data);
 	}
 
-	private static void sendBuySignalToUser(bankNiftyTable data) {
+	private static void sendBuySignalToUser(NiftyFiftyTable data) {
 		logger.finest("Started sendBuySignal method");
 		Double actualPrice=Double.parseDouble(data.getLtp());
 		Double TOTAL_BUY_QTY = Double.parseDouble(data.getTotalBuyQty());
@@ -102,7 +98,7 @@ public class stockDataFormating {
 		
 	}
 
-	public static String setDate(bankNiftyTable data) throws ParseException {
+	public static String setDate(NiftyFiftyTable data) throws ParseException {
 
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SS");
@@ -116,7 +112,7 @@ public class stockDataFormating {
 
 	}
 	
-	public static void sendSellSignal(bankNiftyTable data)  {
+	public static void sendSellSignal(NiftyFiftyTable data)  {
 	
 		Double actualPrice=Double.parseDouble(data.getLtp());
 		if(actualPrice<stopLossPrice)
@@ -132,7 +128,7 @@ public class stockDataFormating {
 		logger.finest("Ends sendBuySignal method");
 	}
 	
-	public static void setNewStopLossPrice(bankNiftyTable data)  {
+	public static void setNewStopLossPrice(NiftyFiftyTable data)  {
 		//Send notification to sell the stock repeatedly and after that set new stopLossPrice
 		if(countSellNotification>50)
 		{

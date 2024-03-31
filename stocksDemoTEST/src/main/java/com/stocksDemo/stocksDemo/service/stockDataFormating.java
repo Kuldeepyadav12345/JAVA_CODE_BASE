@@ -4,8 +4,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
+import java.util.logging.Logger;
+
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,13 +16,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.stocksDemo.stocksDemo.chart.RealtimeChart;
+import com.stocksDemo.stocksDemo.chart.RealtimeChart_test2;
+import com.stocksDemo.stocksDemo.chart.linearChart_1;
 import com.stocksDemo.stocksDemo.model.bankNiftyTable;
 import com.stocksDemo.stocksDemo.repository.stockDataRepository;
-import com.stocksDemo.stocksDemo.route.fetchStockData;
 
 import javazoom.jl.decoder.JavaLayerException;
-
-import java.util.logging.Logger;
 
 
 
@@ -39,9 +41,9 @@ public class stockDataFormating {
 	public stockDataFormating(stockDataRepository stockDataRepository) {
 		stockDataFormating.sDR = stockDataRepository;
 	}
+	
 
-	public static void formatJsonData(String responseBody)throws JsonMappingException, JsonProcessingException, ParseException, JavaLayerException {
-		//System.out.println("formatJsonData ");
+	public static void formatJsonData(String responseBody, linearChart_1 chart)throws JsonMappingException, JsonProcessingException, ParseException, JavaLayerException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(responseBody);
 		logger.finest("formatJsonData" +jsonNode);
@@ -71,6 +73,7 @@ public class stockDataFormating {
 		data.setLastTradeQty(jsonNode.get("lastTradeQty").toString());
 		data.setLastTradeTime(jsonNode.get("lastTradeTime").toString());
 		data.setTime(setDate(data));
+		
 		if(stopLossPrice<=1)
 		{
 			System.out.println("stopLossPrice <1");
@@ -78,15 +81,21 @@ public class stockDataFormating {
 			System.out.println("stopLossPrice <1");
 			stopLossPrice=Double.parseDouble(data.getLtp())-10;
 		}
-		sDR.save(data);
-		sendBuySignalToUser(data);
+		data.setOptionChainVal(serviceUtil.extractStockCode());	
+		sendBuySignalToUser(data,chart);
 		setNewStopLossPrice(data);
 		sendSellSignal(data);
+		
+		                                                                                  
+
+		chart.displayChart(chart);                                                             
+		sDR.save(data);
 	}
 
-	private static void sendBuySignalToUser(bankNiftyTable data) {
+	private static void sendBuySignalToUser(bankNiftyTable data, linearChart_1 chart) {
 		logger.finest("Started sendBuySignal method");
 		Double actualPrice=Double.parseDouble(data.getLtp());
+		chart.updateData(actualPrice);
 		Double TOTAL_BUY_QTY = Double.parseDouble(data.getTotalBuyQty());
 		Double TOTAL_SELL_QTY = Double.parseDouble(data.getTotalSellQty());
 		Double buySellNumerator= TOTAL_BUY_QTY - TOTAL_SELL_QTY;
@@ -99,6 +108,7 @@ public class stockDataFormating {
 		{
 			AudioNotification.playBuyAudio();
 		}
+		data.setBuySellPercentage(buySellPercentage.toString());
 		
 	}
 
@@ -146,7 +156,6 @@ public class stockDataFormating {
 	}
 	
 	public static void testPriceData()  {
-		//Send notification to sell the stock repeatedly and after that set new stopLossPrice
 		testActialPrice++;
 	}
 	
